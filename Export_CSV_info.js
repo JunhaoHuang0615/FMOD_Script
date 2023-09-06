@@ -5,7 +5,7 @@
  */
 
    studio.menu.addMenuItem({
-    name: "Export event csv",
+    name: "Export csv info",
     execute: function() {
         var path = "";
         studio.ui.showModalDialog({
@@ -31,20 +31,19 @@
                     onClicked: function() 
                     {   
                         var allBankPath = studio.project.model.Bank.findInstances();
+                        var allbusPath = studio.project.model.MixerGroup.findInstances();
                         //var allEventPath = studio.project.model.Event.findInstances();
+                        
 
                         var headerType = "csv";
-                        var headerFileName = "fmod_studio_events.csv"
+                        var headerFileName = "fmod_studio_info.csv"
                         var outputPath = "";
-                        var folder = "";
                         if(path === ""){
                             outputPath = studio.project.filePath;
                             // var projectName = outputPath.substr(outputPath.lastIndexOf("/") + 1, outputPath.length);
-                            folder = outputPath.substr(0, outputPath.lastIndexOf("/") + 1)
-                            outputPath = folder + headerFileName;
+                            outputPath = outputPath.substr(0, outputPath.lastIndexOf("/") + 1) + headerFileName;
                         }
                         else{
-                            folder = path;
                             outputPath = path + "/" +headerFileName;
                         }
 
@@ -56,7 +55,15 @@
                             return;
                         }
                         
-                        textFile.writeText("Event name,Event Path,GUID,Bank Path" + "\n");
+                        textFile.writeText("Name,Type,Path,GUID,Nexessary Bank Name , Bank Path" + "\n");
+                        allbusPath.forEach(function (each_bus){
+                            var buspath = each_bus.getPath();
+                            var busguid = each_bus.id;
+                            var bus_name_group = buspath.split('/');
+                            var bus_name_only = bus_name_group[bus_name_group.length - 1]
+                            textFile.writeText(bus_name_only + "," + "Bus" + "," + buspath + "," + busguid + "," + "Master" + "," + "bank:/Master" + "\n");
+
+                        })
                         allBankPath.forEach( function (each_bank) {
                             each_bank.events.forEach(function(each_event){
                                  var event_name = each_event.getPath();
@@ -65,20 +72,15 @@
                                  var event_name_only = name_group[name_group.length - 1]
                                  var eventguid = each_event.id;
                                  var event_bank_path = each_bank.getPath();
-                                 textFile.writeText(event_name_only + "," + event_name.replace(/^event:/, '') + "," + eventguid + "," + event_bank_path.replace(/^bank:/, '') + "\n");
+                                 var bank_name_group = event_bank_path.split('/');
+                                 var bank_name_only = bank_name_group[bank_name_group.length - 1]
+                                 textFile.writeText(event_name_only + "," + "Event" + "," + event_name + "," + eventguid + "," + bank_name_only + "," + event_bank_path + "\n");
                     
                             } )
                         });
                         textFile.close();
-                    
-                        //alert("Export Successed!" + outputPath)
-                        outputPath = outputPath.replace(/\//g, '\\')
-                        folder = folder.replace(/\//g, '\\')
-                        
-                        alert("Export Successed!" + outputPath)
-                        // /open, F:\git_backup
-                        // studio.system.startAsync("explorer", {workingdir: "", args: ["/open,",outputPath]});
-                        studio.system.startAsync("explorer", {workingdir: "", args: ["/open,",folder]});
+                        alert("Export Successed!")
+                        studio.system.startAsync("explorer", {workingdir: "", args: ["/select,", outputPath]});
                     } 
                 },
             ],
