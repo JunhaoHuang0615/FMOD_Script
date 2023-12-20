@@ -5,14 +5,14 @@
  */
 
    studio.menu.addMenuItem({
-    name: "Level_20_sepprate",
+    name: "Level_20_sepprate_inproject",
     execute: function() {
-        alert("This process will take a relatively long time. Pay attention to the progress in the lower right corner. Do not close it halfway.")
+        alert("This process will take a relatively long time. Pay attention to the progress in the bottom right corner. Do not close it halfway.")
         var model_bank_name = "VO_tha";
         var model_bus_name = "VO_tha";
-        var target_bank_name = "VO_ida";
-        var target_events_substring = "CV_ida";
-        var target_bus_titleString = "VO_ida"
+        var target_bank_name = "VO_CNLive";
+        var target_events_substring = "CV_CNLive";
+        var target_bus_titleString = "VO_CNLive"
         var allEvents = studio.project.model.Event.findInstances();
         studio.ui.showModalDialog({
             windowTitle: "Level_20_seprate",
@@ -38,6 +38,15 @@
                             model_bus_name = this.findWidget("m_filterTextmodelbus").text();
                         } 
                 },
+                { widgetType: studio.ui.widgetType.Label, text: "Input target bank name" },
+                { widgetType: studio.ui.widgetType.LineEdit, 
+                    text: "VO_ida", 
+                    widgetId: "m_filterTextTargetBankName",
+                    onTextEdited: function() 
+                        {   
+                            target_bank_name = this.findWidget("m_filterTextTargetBankName").text();
+                        } 
+                },
                 { widgetType: studio.ui.widgetType.Label, text: "Input target events subString " },
                 { widgetType: studio.ui.widgetType.LineEdit, 
                     text: "CV_ida", 
@@ -53,7 +62,7 @@
                     widgetId: "target_events_substring",
                     onTextEdited: function() 
                         {   
-                            target_events_substring = this.findWidget("target_events_substring").text();
+                            target_bus_titleString = this.findWidget("target_events_substring").text();
                         } 
                 },
                 { widgetType: studio.ui.widgetType.PushButton, 
@@ -98,11 +107,21 @@
                         });
                         var modelbus = null;
                         //找到模板bus:
+                        var flag = false;
                         allbus.forEach(function(eachbus){
                             if(eachbus.getPath().indexOf(model_bus_name) > -1){
-                                modelbus = eachbus;
+                                if(flag == false){
+                                    modelbus = eachbus;
+                                    flag = true;
+                                }
                             }
                         });
+                        // for (const eachbus of allbus) {
+                        //     if (modelbus) break; // 如果已经找到匹配的模型，则直接退出循环
+                        //     if (eachbus.getPath().indexOf(model_bus_name) > -1) {
+                        //         modelbus = eachbus;
+                        //     }
+                        // }
                         //遍历模板bus, 需要使用递归的方法创建bus
                         bus_mover(modelbus,target_bus_titleString,target_events_list,null)
                         //完成
@@ -140,7 +159,7 @@ function bus_mover(modelbus, createBusName , targetevents_list, parent_bus){
     modelbus.input.forEach(function(each_input) {
         if(each_input.isOfType("MixerInput")){
             //首先找到它对应的event:
-            input_event = each_input.event;
+            var input_event = each_input.event;
             var input_event_name_group = input_event.getPath().split("/");
             var input_eventname = input_event_name_group[input_event_name_group.length - 1];
             targetevents_list.forEach(function(event){
@@ -151,7 +170,7 @@ function bus_mover(modelbus, createBusName , targetevents_list, parent_bus){
             });
         }
         else if(each_input.isOfType("MixerGroup")){
-            alert(each_input.name)
+            //alert(each_input.name)
             bus_mover(each_input,each_input.name,targetevents_list,m_bus);
         }
     });
