@@ -1,3 +1,4 @@
+##主运行窗口
 from PyQt5.QtWidgets import QMainWindow, QWidget, QApplication, QListWidgetItem
 from git_url_item import Ui_Frame
 from mainwindow import Ui_MainWindow

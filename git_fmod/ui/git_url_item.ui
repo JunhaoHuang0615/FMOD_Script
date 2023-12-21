@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>405</width>
     <height>295</height>
    </rect>
   </property>
@@ -40,6 +40,13 @@
     <widget class="QToolButton" name="btn_browse">
      <property name="text">
       <string>Browse</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QToolButton" name="btn_pull_thisgit_only">
+     <property name="text">
+      <string>Pull</string>
      </property>
     </widget>
    </item>
