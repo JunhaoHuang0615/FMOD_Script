@@ -244,6 +244,20 @@
                   </spacer>
                  </item>
                  <item>
+                  <widget class="QToolButton" name="btn_save_History">
+                   <property name="text">
+                    <string>Save</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="btn_import_history_setting">
+                   <property name="text">
+                    <string>Import History</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QToolButton" name="btn_add_giturl">
                    <property name="text">
                     <string>Add</string>
@@ -254,6 +268,13 @@
                   <widget class="QToolButton" name="btn_delete_selected_url">
                    <property name="text">
                     <string>Delete</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="btn_refresh">
+                   <property name="text">
+                    <string>Refresh</string>
                    </property>
                   </widget>
                  </item>
@@ -270,7 +291,11 @@
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout">
                  <item>
-                  <widget class="QListWidget" name="listWidget_git_url_group"/>
+                  <widget class="QListWidget" name="listWidget_git_url_group">
+                   <property name="selectionMode">
+                    <enum>QAbstractItemView::MultiSelection</enum>
+                   </property>
+                  </widget>
                  </item>
                 </layout>
                </widget>

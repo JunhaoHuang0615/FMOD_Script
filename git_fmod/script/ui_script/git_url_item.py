@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './/git_url_item.ui'
+# Form implementation generated from reading ui file 'f:\FMOD_Script\FMOD_Script\git_fmod\ui/git_url_item.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.7
 #
@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Frame(object):
     def setupUi(self, Frame):
         Frame.setObjectName("Frame")
-        Frame.resize(400, 295)
+        Frame.resize(642, 295)
         self.horizontalLayout = QtWidgets.QHBoxLayout(Frame)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout.setObjectName("horizontalLayout")
@@ -24,9 +24,30 @@ class Ui_Frame(object):
         self.text_url = QtWidgets.QLineEdit(Frame)
         self.text_url.setObjectName("text_url")
         self.horizontalLayout.addWidget(self.text_url)
+        self.label_3 = QtWidgets.QLabel(Frame)
+        self.label_3.setObjectName("label_3")
+        self.horizontalLayout.addWidget(self.label_3)
+        self.text_repo_location = QtWidgets.QLineEdit(Frame)
+        self.text_repo_location.setObjectName("text_repo_location")
+        self.horizontalLayout.addWidget(self.text_repo_location)
         self.btn_browse = QtWidgets.QToolButton(Frame)
         self.btn_browse.setObjectName("btn_browse")
         self.horizontalLayout.addWidget(self.btn_browse)
+        self.label_2 = QtWidgets.QLabel(Frame)
+        self.label_2.setObjectName("label_2")
+        self.horizontalLayout.addWidget(self.label_2)
+        self.comboBox_branch_selected = QtWidgets.QComboBox(Frame)
+        self.comboBox_branch_selected.setMinimumSize(QtCore.QSize(50, 0))
+        self.comboBox_branch_selected.setSizeIncrement(QtCore.QSize(0, 0))
+        self.comboBox_branch_selected.setAutoFillBackground(False)
+        self.comboBox_branch_selected.setMinimumContentsLength(0)
+        self.comboBox_branch_selected.setIconSize(QtCore.QSize(16, 16))
+        self.comboBox_branch_selected.setFrame(True)
+        self.comboBox_branch_selected.setObjectName("comboBox_branch_selected")
+        self.horizontalLayout.addWidget(self.comboBox_branch_selected)
+        self.btn_pull_thisgit_only = QtWidgets.QToolButton(Frame)
+        self.btn_pull_thisgit_only.setObjectName("btn_pull_thisgit_only")
+        self.horizontalLayout.addWidget(self.btn_pull_thisgit_only)
 
         self.retranslateUi(Frame)
         QtCore.QMetaObject.connectSlotsByName(Frame)
@@ -35,4 +56,7 @@ class Ui_Frame(object):
         _translate = QtCore.QCoreApplication.translate
         Frame.setWindowTitle(_translate("Frame", "Frame"))
         self.label.setText(_translate("Frame", "URL"))
+        self.label_3.setText(_translate("Frame", "Repo Location"))
         self.btn_browse.setText(_translate("Frame", "Browse"))
+        self.label_2.setText(_translate("Frame", "Branch"))
+        self.btn_pull_thisgit_only.setText(_translate("Frame", "Pull"))
