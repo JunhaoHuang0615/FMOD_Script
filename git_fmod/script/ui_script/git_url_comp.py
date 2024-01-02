@@ -19,40 +19,57 @@ class UI_FrameComp(QWidget, Ui_Frame): #这里集成了Ui_MainWindow，所以组
         # Initiate rows and columns of table widget
         self.table = QTableWidget(10, 5, self)
         self.table.setRowCount(1)
-        self.table.setColumnCount(5)
+        self.table.setColumnCount(9)
         layout = QHBoxLayout()
         layout.addWidget(self.table)
 
-        self.table.setHorizontalHeaderLabels(['URL', 'Local Path', ' ',"Branch","Pull"])
+        self.table.setHorizontalHeaderLabels(["  Refresh  ",'URL', 'Local Path', ' ',"        Branch Name        ","    Status   "," Check Status ","Checkout To Selected Branch","Pull"])
         # Create the elements and add them to the correct column in the QTableWidget
         # self.label = QtWidgets.QLabel("label")
         # self.table.setCellWidget(0, 0, self.label)  # 0 is the row number, 0 is the column number
-
+        self.btn_refresh = QtWidgets.QPushButton("Refresh")
+        self.table.setCellWidget(0, 0, self.btn_refresh) 
+         
         self.text_url = QtWidgets.QLineEdit()
-        self.table.setCellWidget(0, 0, self.text_url)  # 1 for column number
+        self.table.setCellWidget(0, 1, self.text_url)  # 1 for column number
 
         # self.label_3 = QtWidgets.QLabel("label_3")
         # self.table.setCellWidget(0, 2, self.label_3)  # 2 for column number
 
         self.text_repo_location = QtWidgets.QLineEdit()
-        self.table.setCellWidget(0, 1, self.text_repo_location)  # 3 for column number
+        self.table.setCellWidget(0, 2, self.text_repo_location)  # 3 for column number
 
         self.btn_browse = QtWidgets.QPushButton("Browse")
-        self.table.setCellWidget(0, 2, self.btn_browse)  # 4 for column number
+        self.table.setCellWidget(0, 3, self.btn_browse)  # 4 for column number
 
         # self.label_2 = QtWidgets.QLabel("label_2")
         # self.table.setCellWidget(0, 5, self.label_2)  # 5 for column number
 
         self.comboBox_branch_selected = FilteredComboBox()
-        self.table.setCellWidget(0, 3, self.comboBox_branch_selected)  # 6 for column number
+        self.table.setCellWidget(0, 4, self.comboBox_branch_selected)  # 6 for column number
 
+        self.status_label = QtWidgets.QLabel('<font color="red">Refresh Please!</font>')
+        self.status_label.setAlignment(QtCore.Qt.AlignCenter)
+        # palette = QtGui.QPalette()
+        # palette.setColor(QtGui.QPalette.WindowText, QtCore.Qt.red)
+        # self.status_label.setPalette(palette)
+        self.table.setCellWidget(0, 5, self.status_label) 
+        
+                
+        self.btn_check_status = QtWidgets.QPushButton("Check Status")
+        self.table.setCellWidget(0, 6, self.btn_check_status) 
+        
+        self.btn_checkout_to_this_branch = QtWidgets.QPushButton("Checkout")
+        self.table.setCellWidget(0, 7, self.btn_checkout_to_this_branch) 
+        
         self.btn_pull_thisgit_only = QtWidgets.QPushButton("Pull")
-        self.table.setCellWidget(0, 4, self.btn_pull_thisgit_only)  # 7 for column number
+        self.table.setCellWidget(0, 8, self.btn_pull_thisgit_only)  # 7 for column number
         # self.table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setLayout(layout)
         self.table.setRowHeight(0, self.text_url.height())
         self.table.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
         self.table.verticalHeader().setMinimumSectionSize(0)
+        self.table.resizeColumnsToContents()
         self.table.verticalHeader().setVisible(False)
         # self.table.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         # self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -75,9 +92,30 @@ class UI_FrameComp(QWidget, Ui_Frame): #这里集成了Ui_MainWindow，所以组
         
     # def updateSize(self):
     #     self.setMinimumWidth(self.horizontalHeader().length() + self.verticalScrollBar().width())
+    def check_status(self):
+        #首先检查是否有修改
+        # palette = QtGui.QPalette()
+        if self.text_repo_location.text != "":
+            if git_function.isdirty(self.text_repo_location.text()) == True:
+                # 说明有改动
+                self.status_label.setText('<font color="red">Dirty</font>')
+                # palette.setColor(QtGui.QPalette.WindowText, QtCore.Qt.red)
+                # self.status_label.setPalette(palette)
+            elif git_function.isUpdated(self.text_repo_location.text()) == False:
+                self.status_label.setText('<font color="red">Pull</font>')   
+                # palette.setColor(QtGui.QPalette.WindowText, QtCore.Qt.red)
+                # self.status_label.setPalette(palette)
+            elif git_function.isUpdated(self.text_repo_location.text()) == True:
+                self.status_label.setText('<font color="green">Updated</font>')   
+                # palette.setColor(QtGui.QPalette.WindowText, QtCore.Qt.green)
+                # self.status_label.setPalette(palette)
+        pass
         
     def register_button(self):
         self.btn_browse.clicked.connect(self.browse)
+        self.btn_checkout_to_this_branch.clicked.connect(self.checkout_to_branch)
+        self.btn_refresh.clicked.connect(self.refresh_branch)
+        self.btn_check_status.clicked.connect(self.check_status)
         ## self.comboBox_branch_selected.activated[str].connect(self.refresh_branch) 选择某个选项的时候才会触发
         pass
     
@@ -93,4 +131,25 @@ class UI_FrameComp(QWidget, Ui_Frame): #这里集成了Ui_MainWindow，所以组
             # self.comboBox_branch_selected.clear()
             branch_list = git_function.get_unique_branches(self.text_repo_location.text())
             self.comboBox_branch_selected.addItems(branch_list)
-            print(branch_list)
+            # get current branch
+            current_branch = git_function.get_current_branch(self.text_repo_location.text())
+            self.select_option(current_branch);
+            self.check_status()
+
+    def checkout_to_branch(self):
+        if self.text_repo_location.text != "" and self.get_current_branch_option() != "":
+            #切换分支
+            git_function.switch_branch(self.text_repo_location.text(),self.get_current_branch_option())
+            
+            
+    def select_option(self, opt):
+        index = self.comboBox_branch_selected.findText(opt)
+        if index >= 0:  # 如果找到了
+            self.comboBox_branch_selected.setCurrentIndex(index)  # 就设置成当前选项
+        else:
+            print(f"没有找到选项：{opt}")
+            
+    def get_current_branch_option(self):
+        return self.comboBox_branch_selected.currentText()
+    
+        
