@@ -1,6 +1,6 @@
 from PyQt5 import QtGui, QtWidgets,QtCore
 from git import Repo
-import difflib, sys
+import difflib, sys,os
 from MyTools import git_function
 from PyQt5.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout
 from PyQt5.QtCore import QCoreApplication, QRect, QPoint,QSize
@@ -52,7 +52,7 @@ class DiffWindow(QtWidgets.QMainWindow):
         windowLayout.addLayout(editorLayout)
 
         centralWidget = QtWidgets.QWidget()
-        self.setCentralWidget(centralWidget) 
+        self.setCentralWidget(centralWidget)
         centralWidget.setLayout(windowLayout)
 
         self.show_diff()
@@ -70,35 +70,44 @@ class DiffWindow(QtWidgets.QMainWindow):
         centerPoint = screenSize.center()
         windowRect.moveCenter(centerPoint)
         self.move(windowRect.topLeft())
-
+        
+    def get_relative_path(self,repo_path, file_absolute_path):
+        relative_path = os.path.relpath(file_absolute_path, repo_path)
+        relative_file_path = os.path.normpath(relative_path)
+        relative_file_path = relative_file_path.replace('\\', '/')
+        return relative_file_path
+    
     def openFile(self):
         # QPushButton 的 clicked 信号会调用这个方法
         QtGui.QDesktopServices.openUrl(QtCore.QUrl(self.file_path))
 
     def show_diff(self):
-        original_lines = git_function.get_original_file(self.repo_path, self.file_path)
-        modified_lines = git_function.get_modified_file(self.repo_path, self.file_path)
+        relative_path = self.get_relative_path(self.repo_path,self.file_path)
+        # print(git_function.check_git_status(self.repo_path,relative_path))
+        if self.repo_path != "" and git_function.check_git_status(self.repo_path,relative_path) != git_function.GitFileStatus.UNTRACKED:
+            original_lines = git_function.get_original_file(self.repo_path, relative_path)
+            modified_lines = git_function.get_modified_file(self.repo_path, relative_path)
 
-        differ = difflib.Differ()
-        diff = list(differ.compare(original_lines, modified_lines))
+            differ = difflib.Differ()
+            diff = list(differ.compare(original_lines, modified_lines))
 
-        lineno = 1  # 计数变量，初始化为 1
-        for line in diff:
-            span_template = "<span style='background-color:{}'>{}</span>"
-            if line.startswith('- '):
-                self.originalFile.append(span_template.format('#FFC0CB', f"{lineno} - " + line[2:]))  # 在行前添加行号和 "-"，颜色已修改为淡红色
-                self.modifiedFile.append(f"{lineno} ")
-                lineno += 1
-            elif line.startswith('+ '): 
-                self.modifiedFile.append(span_template.format('#90EE90', f"{lineno} + " + line[2:]))  # 在行前添加行号和 "+"，颜色已修改为淡绿色
-                self.originalFile.append(f"{lineno} ")
-                lineno += 1
-            elif line.startswith('  '):  # 没有修改的行以空格开始
-                self.originalFile.append(f"{lineno} " + line[2:]) 
-                self.modifiedFile.append(f"{lineno} " + line[2:]) 
-                lineno += 1
+            lineno = 1  # 计数变量，初始化为 1
+            for line in diff:
+                span_template = "<span style='background-color:{}'>{}</span>"
+                if line.startswith('- '):
+                    self.originalFile.append(span_template.format('#FFC0CB', f"{lineno} - " + line[2:]))  # 在行前添加行号和 "-"，颜色已修改为淡红色
+                    self.modifiedFile.append(f"{lineno} ")
+                    lineno += 1
+                elif line.startswith('+ '): 
+                    self.modifiedFile.append(span_template.format('#90EE90', f"{lineno} + " + line[2:]))  # 在行前添加行号和 "+"，颜色已修改为淡绿色
+                    self.originalFile.append(f"{lineno} ")
+                    lineno += 1
+                elif line.startswith('  '):  # 没有修改的行以空格开始
+                    self.originalFile.append(f"{lineno} " + line[2:]) 
+                    self.modifiedFile.append(f"{lineno} " + line[2:]) 
+                    lineno += 1
 
-app = QtWidgets.QApplication([])
-window = DiffWindow('F:/FMOD_Script/FMOD_Script', 'git_fmod/script/ui_script/MyTools/git_function.py')  
-window.show()
-sys.exit(app.exec_())
+# app = QtWidgets.QApplication([])
+# window = DiffWindow('F:/FMOD_Script/FMOD_Script', 'git_fmod/script/ui_script/MyTools/git_function.py')  
+# window.show()
+# sys.exit(app.exec_())

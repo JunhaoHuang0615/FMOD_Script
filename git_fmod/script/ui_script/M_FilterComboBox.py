@@ -20,7 +20,7 @@ class FilteredComboBox(QComboBox):
         for i in items:
             item = QStandardItem(i)
             self.source_model.appendRow(item)
-
+        self.setCurrentIndex(0)
     def keyPressEvent(self, event):
         super().keyPressEvent(event)
         self.hidePopup()

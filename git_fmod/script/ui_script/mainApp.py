@@ -5,11 +5,14 @@ from git_url_comp import UI_FrameComp
 from mainwindow import Ui_MainWindow
 from ProgressBarWindow import ProgressBarWindow
 from LoadingWindow import LoadingWindow
+from Data import DataManager
+from Data import GitRepoData
 
 class MainWindow(QMainWindow, Ui_MainWindow): #这里集成了Ui_MainWindow，所以组件都可以直接拿得到
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
+        self.data_mgr = DataManager.DataManager()
         self.add_url_groups()
         self.registerbutton()
         self.main_window_list = []
@@ -28,7 +31,10 @@ class MainWindow(QMainWindow, Ui_MainWindow): #这里集成了Ui_MainWindow，�
     # gitのURLコンポーネントを追加する
     def add_gitwidget(self):
             # frame = QWidget()
-            frame_ui = UI_FrameComp()
+            group = self.data_mgr.get_prefered_git_group();
+            #初始化一个model
+            new_git_reopo = GitRepoData.GitRepoInfo()
+            frame_ui = UI_FrameComp(new_git_reopo)
             item = QListWidgetItem(self.listWidget_git_url_group)
             item.setSizeHint(frame_ui.sizeHint())
             self.listWidget_git_url_group.setItemWidget(item, frame_ui)
@@ -68,6 +74,15 @@ class MainWindow(QMainWindow, Ui_MainWindow): #这里集成了Ui_MainWindow，�
         for item in git_ui_comp:
             item.refresh_branch();
         pass
+    def get_all_UI_FrameComp(self):
+        ui_framecomp_list = []  # 创建一个空列表
+        for i in range(self.listWidget_git_url_group.count()):  # 遍历listWidget_git_url_group中的所有项目
+            item = self.listWidget_git_url_group.item(i)  # 获取每个项目
+            frame_ui = self.listWidget_git_url_group.itemWidget(item)  # 从项目中获取UI_FrameComp组件
+            ui_framecomp_list.append(frame_ui)  # 将UI_FrameComp组件添加到列表中
+        return ui_framecomp_list  # 返回包含所有UI_FrameComp组件的列表
+    # def save_git_details(self):
+        
         
             
         
@@ -80,7 +95,7 @@ def main():
     for i in range(100):
         time.sleep(0.01)
         splash.setProgressValue(i)
-    #splash.close()   
+    #splash.close()
     app.exec_()
 def openMainWindow():
     global win

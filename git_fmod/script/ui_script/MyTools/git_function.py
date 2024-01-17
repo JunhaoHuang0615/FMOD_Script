@@ -1,5 +1,29 @@
-from git import Repo
+from git import Repo,GitCommandError
+import os
+import chardet
+from enum import Enum
 ## git function
+
+class GitFileStatus(Enum):
+    UNTRACKED = 1
+    MODIFIED = 2
+    ADDED = 3
+    CLEAN = 4
+    
+def check_git_status(repo_path,file_path):
+    repo = Repo(repo_path)
+    
+    file_relative_path = file_path.replace(repo_path, '')  # 获取文件在仓库中的相对路径
+
+    if file_relative_path in repo.untracked_files:
+        return GitFileStatus.UNTRACKED
+    elif file_relative_path in [item.a_path for item in repo.index.diff(None)]:
+        return GitFileStatus.MODIFIED
+    elif file_relative_path in [item.a_path for item in repo.index.diff('HEAD')]:
+        return GitFileStatus.ADDED
+    else:
+        return GitFileStatus.CLEAN
+    
 def clone_repo(url, dest):
     """
     克隆git仓库到指定的目录
@@ -109,22 +133,69 @@ def get_modified_files(repo_path):
     # 创建一个Repo对象
     repo = Repo(repo_path)
 
-    # 获取被修改的文件列表
-    modified_files = [item.a_path for item in repo.index.diff(None)]
+    # 获取被修改的文件列表，转换为绝对路径
+    modified_files = [os.path.abspath(os.path.join(repo_path, item.a_path)) for item in repo.index.diff(None)]
+  
+    # 获取新增的文件列表，转换为绝对路径
+    untracked_files = [os.path.abspath(os.path.join(repo_path, item)) for item in repo.untracked_files]
+  
+    # 检查复杂的更改
+    diff_index = repo.index.diff(repo.head.commit)
     
-    return modified_files
+    added = [os.path.abspath(os.path.join(repo_path, d.a_path)) for d in diff_index.iter_change_type('A')]
+    deleted = [os.path.abspath(os.path.join(repo_path, d.a_path)) for d in diff_index.iter_change_type('D')]
+    renamed = [f"{os.path.abspath(os.path.join(repo_path, d.a_path))} -> {os.path.abspath(os.path.join(repo_path, d.b_path))}" for d in diff_index.iter_change_type('R')]
 
-def get_modified_file(repo_path, file_path):
-    repo = Repo(repo_path)
-    with open(repo.working_tree_dir + '/' + file_path, 'r', encoding='utf-8') as file:  
-        file_text = file.read()
-        return file_text.splitlines()  # 使用`splitlines()`去掉行结束符
+    result = {
+        'modified': modified_files,
+        'untracked': untracked_files,
+        'added': added,
+        'deleted': deleted,
+        'renamed': renamed,
+    }
+    
+    # 数量统计
+    result['modified_count'] = len(modified_files)
+    result['untracked_count'] = len(untracked_files)
+    result['added_count'] = len(added)
+    result['deleted_count'] = len(deleted)
+    result['renamed_count'] = len(renamed)
+    result['total_count'] = sum(result[key] for key in result if key.endswith('_count'))
+
+    return result
 
 def get_original_file(repo_path, file_path):
     repo = Repo(repo_path)
     blob = repo.head.commit.tree / file_path
-    file_content = blob.data_stream.read().decode('utf-8')  
-    return file_content.splitlines()  # 使用`splitlines()`去掉行结束符
+    file_data = blob.data_stream.read()
+    
+    try:
+        result = chardet.detect(file_data)
+        encoding = result['encoding']
+        
+        file_content = file_data.decode(encoding)  
+        return file_content.splitlines()
+    except Exception as e:
+        print(str(e))  # 输出错误信息
+        return "Can not be read"  # 返回预设的信息
+
+def get_modified_file(repo_path, file_path):
+    repo = Repo(repo_path)
+    file_path = repo.working_tree_dir + '/' + file_path
+
+    try:
+        with open(file_path, 'rb') as file:  # 先以二进制模式打开文件
+            file_data = file.read()
+            
+        result = chardet.detect(file_data)  # 检测文件编码
+        encoding = result['encoding']
+        
+        with open(file_path, 'r', encoding=encoding) as file:  # 再以检测到的编码打开文件
+            file_text = file.read()
+            return file_text.splitlines()
+    except Exception as e:
+        print(str(e))  # 输出错误信息
+        return "Can not be read"  # 返回预设的信息
 
 def diff_file(repo_path, file_path):
     # 创建一个Repo对象
@@ -179,4 +250,30 @@ def isUpdated(repo_path):
     remote_branch = 'origin/' + repo.active_branch.name
     remote_commit = repo.commit(remote_branch)
     return local_commit==remote_commit
+
+def git_commit(repo_path, commit_message):
+    try:
+        repo = Repo(repo_path)
+        repo.git.add(update=True)
+        repo.index.commit(commit_message)
+        return 'Commit successful'
+    except GitCommandError as error:
+        return f'Error: {error}'
     
+def git_push(repo_path):
+    try:
+        repo = Repo(repo_path)
+        origin = repo.remote(name='origin')
+        origin.push()
+        return 'Push successful'
+    except GitCommandError as error:
+        return f'Error: {error}'
+
+def git_pull(repo_path):
+    try:
+        repo = Repo(repo_path)
+        origin = repo.remote(name='origin')
+        origin.pull()
+        return 'Pull successful'
+    except GitCommandError as error:
+        return f'Error: {error}'
