@@ -183,11 +183,12 @@ class UI_FrameComp(QWidget, Ui_Frame): #这里集成了Ui_MainWindow，所以组
     def get_current_branch_option(self):
         return self.comboBox_branch_selected.currentText()
     
-    def save_comp(self):
+    def get_comp(self):
         self.git_repo_comp.setName(self.repo_name.text())
         self.git_repo_comp.setremote_url(self.text_url.text())
         self.git_repo_comp.setlocal_path(self.text_repo_location.text())
-        self.git_repo_comp.console_data()
+        return self.git_repo_comp
+        # self.git_repo_comp.console_data()
         
     
         

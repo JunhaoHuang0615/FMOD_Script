@@ -26,6 +26,7 @@ class MainWindow(QMainWindow, Ui_MainWindow): #这里集成了Ui_MainWindow，�
         self.btn_delete_selected_url.clicked.connect(self.remove_gitwidget)
         self.btn_add_giturl.clicked.connect(self.add_gitwidget)
         self.btn_refresh.clicked.connect(self.refresh_git_comp)
+        self.btn_save_History.clicked.connect(self.save_git_details)
         pass
     # 组件功能
     # gitのURLコンポーネントを追加する
@@ -81,8 +82,16 @@ class MainWindow(QMainWindow, Ui_MainWindow): #这里集成了Ui_MainWindow，�
             frame_ui = self.listWidget_git_url_group.itemWidget(item)  # 从项目中获取UI_FrameComp组件
             ui_framecomp_list.append(frame_ui)  # 将UI_FrameComp组件添加到列表中
         return ui_framecomp_list  # 返回包含所有UI_FrameComp组件的列表
-    # def save_git_details(self):
-        
+    def save_git_details(self):
+        all_ui_framecomps = self.get_all_UI_FrameComp()
+        if all_ui_framecomps:   # 如果列表不为空
+            self.data_mgr.opened_git_group.clear_git_repo()
+            for element in all_ui_framecomps:
+                self.data_mgr.opened_git_group.add_or_update_git_repo(element.get_comp())
+                
+            self.data_mgr.add_git_group(self.data_mgr.opened_git_group)
+            
+        # print(self.data_mgr.opened_git_group.get_repo_info_strings())
         
             
         

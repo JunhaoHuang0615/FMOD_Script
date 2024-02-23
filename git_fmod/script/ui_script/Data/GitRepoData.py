@@ -26,7 +26,8 @@ class GitRepoInfo:
         self.local_path = local_path
     
     def console_data(self):
-        print(self.name + " | " + self.remote_url + " | " + self.local_path)
+        # 返回一个包含GitRepoInfo信息的字符串
+        return self.name + " | " + self.remote_url + " | " + self.local_path
     
             
 
@@ -41,25 +42,29 @@ class GitGroup:
             assert isinstance(repo, GitRepoInfo)
             self.git_repos[repo.id] = repo  # 使用id作为键，GitRepoInfo实例作为值
             
-    def add_or_update_git_repo(self, git_repo):
-        assert isinstance(git_repo, GitRepoInfo)
-
-        if git_repo.id in self.git_repos:
-            print(f"GitRepoInfo with id {git_repo.id} already exists, updating the name.")
-            self.git_repos[git_repo.id].setName(git_repo.name)
-        else:
-            self.git_repos[git_repo.id] = git_repo
+    def add_or_update_git_repo(self, git_repo:GitRepoInfo):
+        self.git_repos[git_repo.id] = git_repo
     
     def modify_group_name(self,group_name):
         self.group_name = group_name
         
     def create_and_add_git_repo(self, name, remote_url, local_path, id=None):
-        if name in self.git_repos:
-            print(f"Object with name {name} already exists.")
+        if id in self.git_repos:
+            print(f"Object with name {id} already exists.")
             return
 
         git_repo = GitRepoInfo(name, remote_url, local_path, id)
-        self.git_repos[git_repo.name] = git_repo
+        self.git_repos[git_repo.id] = git_repo
+    
+    def clear_git_repo(self):
+        self.git_repos = {}
+    
+    def get_repo_info_strings(self):
+        # 获取self.git_repos中所有GitRepoInfo的信息字符串
+        info_strings = [repo.console_data() for repo in self.git_repos.values()]
+        # 用换行符将所有的信息字符串拼接成一条长的字符串
+        return '\n'.join(info_strings)
+    
 
 def write_gitgroups_json(git_groups, filename):
     data = []
