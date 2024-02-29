@@ -13,14 +13,31 @@ class MainWindow(QMainWindow, Ui_MainWindow): #这里集成了Ui_MainWindow，�
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
         self.data_mgr = DataManager.DataManager()
-        self.add_url_groups()
         self.registerbutton()
+        self.load_templete()
         self.main_window_list = []
+    
+    def load_templete(self):
+        self.load_data_from_config()
+        self.add_url_groups()
 
     def add_url_groups(self):
         # for i in range(15):  # 这里的10可以改成你需要添加的Frame的数量
         if self.listWidget_git_url_group.count() == 0:
             self.add_gitwidget()
+    
+    def load_data_from_config(self):
+        for git_data in self.data_mgr.opened_git_group.git_repos.values():
+            self.add_widget_with_gitdata(git_data)
+        self.lineEdit_Opened_Templete.setText(self.data_mgr.opened_git_group.group_name)
+        
+            
+    def add_widget_with_gitdata(self,gitdata):
+            frame_ui = UI_FrameComp(gitdata)
+            item = QListWidgetItem(self.listWidget_git_url_group)
+            item.setSizeHint(frame_ui.sizeHint())
+            self.listWidget_git_url_group.setItemWidget(item, frame_ui)
+            frame_ui.refersh_comp_withData()     
             
     def registerbutton(self):
         self.btn_delete_selected_url.clicked.connect(self.remove_gitwidget)
@@ -32,7 +49,8 @@ class MainWindow(QMainWindow, Ui_MainWindow): #这里集成了Ui_MainWindow，�
     # gitのURLコンポーネントを追加する
     def add_gitwidget(self):
             # frame = QWidget()
-            group = self.data_mgr.get_prefered_git_group();
+            ##这里需要根据读取到的Data来添加组件了
+
             #初始化一个model
             new_git_reopo = GitRepoData.GitRepoInfo()
             frame_ui = UI_FrameComp(new_git_reopo)
@@ -80,17 +98,26 @@ class MainWindow(QMainWindow, Ui_MainWindow): #这里集成了Ui_MainWindow，�
         for i in range(self.listWidget_git_url_group.count()):  # 遍历listWidget_git_url_group中的所有项目
             item = self.listWidget_git_url_group.item(i)  # 获取每个项目
             frame_ui = self.listWidget_git_url_group.itemWidget(item)  # 从项目中获取UI_FrameComp组件
+            del item
             ui_framecomp_list.append(frame_ui)  # 将UI_FrameComp组件添加到列表中
         return ui_framecomp_list  # 返回包含所有UI_FrameComp组件的列表
+    
     def save_git_details(self):
         all_ui_framecomps = self.get_all_UI_FrameComp()
+        templete_name = self.lineEdit_Opened_Templete.text()
+        self.data_mgr.opened_git_group.group_name = templete_name
         if all_ui_framecomps:   # 如果列表不为空
             self.data_mgr.opened_git_group.clear_git_repo()
             for element in all_ui_framecomps:
                 self.data_mgr.opened_git_group.add_or_update_git_repo(element.get_comp())
                 
             self.data_mgr.add_git_group(self.data_mgr.opened_git_group)
-            
+            self.data_mgr.save_to_file()
+    
+    def clear_git_comp(self):
+        while self.listWidget_git_url_group.count() > 0:
+            item = self.listWidget_git_url_group.takeItem(0)
+            del item 
         # print(self.data_mgr.opened_git_group.get_repo_info_strings())
         
             

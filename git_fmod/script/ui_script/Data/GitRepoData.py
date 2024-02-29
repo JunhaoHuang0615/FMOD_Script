@@ -2,6 +2,8 @@ import os
 import json
 from git import Repo
 import uuid
+from MyTools import My_QTTool
+
 
 class GitRepoInfo:
     def __init__(self, name="", remote_url="", local_path="", id=None):
@@ -32,15 +34,17 @@ class GitRepoInfo:
             
 
 class GitGroup:
-    def __init__(self, group_name="", git_repos={}, preferred = False):
+    def __init__(self, group_name="", git_repos={}, preferred = False,id = None):
         self.group_name = group_name  # 组名
         self.preferred = preferred  # 是否首选
-
+        self.guid = id if id else str(uuid.uuid4())
         self.git_repos = {}  # GitRepoInfo的字典
-
-        for repo in git_repos:
-            assert isinstance(repo, GitRepoInfo)
-            self.git_repos[repo.id] = repo  # 使用id作为键，GitRepoInfo实例作为值
+        if isinstance(git_repos, list):
+            for repo in git_repos:
+                assert isinstance(repo, GitRepoInfo)
+                self.git_repos[repo.id] = repo  # 使用id作为键，GitRepoInfo实例作为值
+        else:
+            self.git_repos = git_repos
             
     def add_or_update_git_repo(self, git_repo:GitRepoInfo):
         self.git_repos[git_repo.id] = git_repo
@@ -66,37 +70,65 @@ class GitGroup:
         return '\n'.join(info_strings)
     
 
-def write_gitgroups_json(git_groups, filename):
+def write_gitgroups_json(git_groups):
     data = []
 
     for git_group in git_groups:
-        group_data = {"group_name": git_group.group_name, "preferred": git_group.preferred, "git_repos": {}}
+        group_data = {"group_name": git_group.group_name, "guid":git_group.guid, "preferred": git_group.preferred, "git_repos": {}}
 
         for id, repo in git_group.git_repos.items():
             group_data["git_repos"][id] = repo.__dict__
 
         data.append(group_data)
 
-    target_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config', filename)
+    target_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config')
+    target_file = 'config.json'
+    target_path = os.path.join(target_dir, target_file)
+    
+    # 检查目标目录是否存在，如果不存在则创建
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
+
     with open(target_path, 'w') as f:
         json.dump(data, f, indent=4)
+    
+    My_QTTool.show_message("Config Saved to the Path: " + target_path)
+    
+    
         
-def read_gitgroups_json(filename):
-    target_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config', filename)
-    with open(target_path, 'r') as f:
-        data = json.load(f)
-
+def read_gitgroups_json():
     git_groups = []
-    for group_data in data:
-        git_repos = {}
-        for id, repo_data in group_data["git_repos"].items():
-            repo = GitRepoInfo(repo_data['name'], repo_data['remote_url'], repo_data['local_path'], id=repo_data['id'])
-            git_repos[id] = repo
+    try:
+        target_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config', 'config.json')
+        with open(target_path, 'r') as f:
+            data = json.load(f)
 
-        git_group = GitGroup(group_data['group_name'], git_repos, group_data['preferred'])
-        git_groups.append(git_group)
+        for group_data in data:
+            git_repos = {}
+            for id, repo_data in group_data["git_repos"].items():
+                # print(id)
+                # print(repo_data['id'])
+                # print(repo_data['name'])
+                repo = GitRepoInfo(repo_data['name'], repo_data['remote_url'], repo_data['local_path'], id=repo_data['id'])
+                git_repos[id] = repo
+            # print(group_data['group_name'])
+            # print(git_repos)
+            # print(group_data['preferred'])
+            # print(group_data['guid'])
+            git_group = GitGroup(group_data['group_name'], git_repos, group_data['preferred'], group_data['guid'])
+            git_groups.append(git_group)
 
-    return git_groups
+        return git_groups
+
+    except FileNotFoundError:
+        print("The specified file could not be found.")
+        return git_groups
+    except json.JSONDecodeError:
+        print("There was an error decoding the JSON file.")
+        return git_groups
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return git_groups
 
 # # 使用这个方法
 # group = read_gitgroup_json('gitgroup.json')

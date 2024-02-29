@@ -190,5 +190,12 @@ class UI_FrameComp(QWidget, Ui_Frame): #这里集成了Ui_MainWindow，所以组
         return self.git_repo_comp
         # self.git_repo_comp.console_data()
         
+    def refersh_comp_withData(self):
+        self.repo_name.setText(self.git_repo_comp.name)
+        self.text_url.setText(self.git_repo_comp.remote_url)
+        self.text_repo_location.setText(self.git_repo_comp.local_path)
+        self.refresh_branch()
+        
+        
     
         

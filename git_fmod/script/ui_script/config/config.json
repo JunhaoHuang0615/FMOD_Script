@@ -1,0 +1,23 @@
+[
+    {
+        "group_name": "test_templete",
+        "guid": "9948f693-62c1-4de6-b4ce-5261e26bafee",
+        "preferred": true,
+        "git_repos": {
+            "52bf7e7d-7e28-4fd3-8c5c-6f32ef58164d": {
+                "id": "52bf7e7d-7e28-4fd3-8c5c-6f32ef58164d",
+                "name": "Test",
+                "remote_url": "1111111sdfsad11",
+                "local_path": "F:/FMOD_Script/FMOD_Script",
+                "branch": "main"
+            },
+            "cbcd0b3b-f321-44d2-bff5-7379f4809ec9": {
+                "id": "cbcd0b3b-f321-44d2-bff5-7379f4809ec9",
+                "name": "ttttt",
+                "remote_url": "dsaf",
+                "local_path": "F:/FMOD_Script/FMOD_Script",
+                "branch": "main"
+            }
+        }
+    }
+]
